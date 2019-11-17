@@ -86,17 +86,13 @@ int main ( int argc, char **argv )
   }
 /*
   Carry out the algorithm.
-*/  mind = dijkstra_distance ( ohd );
-
+*/
 double st = omp_get_wtime();
 
   mind = dijkstra_distance ( ohd );
 
  double runtime = omp_get_wtime() - st;
 printf(" total: %f s\n", runtime);
-
-
-
 
 /*
   Print the results.
@@ -269,7 +265,6 @@ void find_nearest ( int mind[NV], int connected[NV], int *d, int *v )
 
   *d = i4_huge;
   *v = -1;
-  #pragma omp for
   for ( i = 0; i < NV; i++ )
   {
     if ( !connected[i] && mind[i] < *d )
@@ -332,7 +327,6 @@ void init ( int ohd[NV][NV] )
   int i4_huge = 2147483647;
   int j;
 
-  #pragma omp for
   for ( i = 0; i < NV; i++ )  
   {
     for ( j = 0; j < NV; j++ )
@@ -347,7 +341,6 @@ void init ( int ohd[NV][NV] )
       }
     }
   }
-  
 
   ohd[0][1] = ohd[1][0] = 40;
   ohd[0][2] = ohd[2][0] = 15;
@@ -455,7 +448,7 @@ void update_mind ( int mv, int connected[NV], int ohd[NV][NV], int mind[NV] )
 {
   int i;
   int i4_huge = 2147483647;
-  #pragma omp for
+
   for ( i = 0; i < NV; i++ )
   {
     if ( !connected[i] )
@@ -478,5 +471,6 @@ void update_mind ( int mv, int connected[NV], int ohd[NV][NV], int mind[NV] )
   }
   return;
 }
+
 
 

@@ -175,6 +175,9 @@ int main () {
     add_edge(g, 'd', 'e', 6);
     add_edge(g, 'e', 'f', 9);
     dijkstra(g, 'a', 'e');
+    double st = omp_get_wtime();
     print_path(g, 'e');
+    double runtime = omp_get_wtime() - st;
+    printf(" total: %f s\n", runtime);
     return 0;
 }
