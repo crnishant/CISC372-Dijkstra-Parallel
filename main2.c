@@ -3,10 +3,10 @@
 # include <time.h>
 #include <omp.h>
 #include <stdlib.h>
-# define NV 6
+# define NV 100
 
 int main ( int argc, char **argv );
-void gen_random_graph(int n);
+void gen_random_graph(int ohd[NV][NV], int n);
 int *dijkstra_distance ( int ohd[NV][NV] );
 void find_nearest ( int mind[NV], int connected[NV], int *d, int *v );
 void init ( int ohd[NV][NV] );
@@ -87,7 +87,7 @@ int main ( int argc, char **argv )
     fprintf ( stdout, "\n" );
   }
 
-  gen_random_graph(100);               /*------------------------------------------------------*/
+  //gen_random_graph(100);               /*------------------------------------------------------*/
 
 /*
   Carry out the algorithm.
@@ -126,18 +126,16 @@ printf(" total: %f s\n", runtime);
 /******************************************************************************/
 
 
-void gen_random_graph(int n)
+void gen_random_graph(int ohd[NV][NV], int n)
 {
-    int adj_matrix[n][n];
+    //int adj_matrix[n][n];
     for(int u = 0; u < n; u++)
     {
         for (int v = 0; v < n; v++)
         {
-            if(adj_matrix[u][v]==adj_matrix[v][u])
-            {
-                adj_matrix[u][v] = rand() % 10 + 1;
-                printf("%d\n", adj_matrix[u][v]);
-            }
+            	ohd[u][v] = rand() % 100 + 1;
+		ohd[v][u] = ohd[u][v];
+		//printf("%d\n", ohd[u][v]);
         }
     }
 
@@ -371,14 +369,7 @@ void init ( int ohd[NV][NV] )
     }
   }
 
-  ohd[0][1] = ohd[1][0] = 40;
-  ohd[0][2] = ohd[2][0] = 15;
-  ohd[1][2] = ohd[2][1] = 20;
-  ohd[1][3] = ohd[3][1] = 10;
-  ohd[1][4] = ohd[4][1] = 25;
-  ohd[2][3] = ohd[3][2] = 100;
-  ohd[1][5] = ohd[5][1] = 6;
-  ohd[4][5] = ohd[5][4] = 8;
+  gen_random_graph(ohd, NV);
 
   return;
 }
