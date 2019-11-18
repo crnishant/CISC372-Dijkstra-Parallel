@@ -1,18 +1,17 @@
 # include <stdlib.h>
 # include <stdio.h>
 # include <time.h>
-# include <omp.h>
-
-# define NV 6
+#include <omp.h>
+#include <stdlib.h>
+# define NV 1000
 
 int main ( int argc, char **argv );
+void gen_random_graph(int ohd[NV][NV], int n);
 int *dijkstra_distance ( int ohd[NV][NV] );
-void find_nearest ( int s, int e, int mind[NV], int connected[NV], int *d, 
-  int *v );
+void find_nearest ( int mind[NV], int connected[NV], int *d, int *v );
 void init ( int ohd[NV][NV] );
 void timestamp ( void );
-void update_mind ( int s, int e, int mv, int connected[NV], int ohd[NV][NV], 
-  int mind[NV] );
+void update_mind ( int mv, int connected[NV], int ohd[NV][NV], int mind[NV] );
 
 /******************************************************************************/
 
@@ -41,7 +40,7 @@ int main ( int argc, char **argv )
 
   Modified:
 
-    01 July 2010
+    30 June 2010
 
   Author:
 
@@ -57,15 +56,11 @@ int main ( int argc, char **argv )
 
   timestamp ( );
   fprintf ( stdout, "\n" );
-  fprintf ( stdout, "DIJKSTRA_OPENMP\n" );
+  fprintf ( stdout, "DIJKSTRA\n" );
   fprintf ( stdout, "  C version\n" );
   fprintf ( stdout, "  Use Dijkstra's algorithm to determine the minimum\n" );
   fprintf ( stdout, "  distance from node 0 to each node in a graph,\n" );
   fprintf ( stdout, "  given the distances between each pair of nodes.\n" );
-  fprintf ( stdout, "\n" );
-  fprintf ( stdout, "  Although a very small example is considered, we\n" );
-  fprintf ( stdout, "  demonstrate the use of OpenMP directives for\n" );
-  fprintf ( stdout, "  parallel execution.\n" );
 /*
   Initialize the problem data.
 */
@@ -76,7 +71,7 @@ int main ( int argc, char **argv )
   fprintf ( stdout, "\n" );
   fprintf ( stdout, "  Distance matrix:\n" );
   fprintf ( stdout, "\n" );
-  for ( i = 0; i < NV; i++ )
+  /*for ( i = 0; i < NV; i++ )
   {
     for ( j = 0; j < NV; j++ )
     {
@@ -90,16 +85,20 @@ int main ( int argc, char **argv )
       }
     }
     fprintf ( stdout, "\n" );
-  }
+  }*/
+
+  //gen_random_graph(100);               /*------------------------------------------------------*/
+
 /*
   Carry out the algorithm.
 */
-  double st = omp_get_wtime();
+double st = omp_get_wtime();
 
   mind = dijkstra_distance ( ohd );
 
  double runtime = omp_get_wtime() - st;
-printf(" total: %f s\n", runtime);  
+printf(" total: %f s\n", runtime);
+
 /*
   Print the results.
 */
@@ -111,14 +110,12 @@ printf(" total: %f s\n", runtime);
     fprintf ( stdout, "  %2d  %2d\n", i, mind[i] );
   }
 /*
-  Free memory.
-*/
-  free ( mind );
-/*
   Terminate.
 */
+  free ( mind );
+
   fprintf ( stdout, "\n" );
-  fprintf ( stdout, "DIJKSTRA_OPENMP\n" );
+  fprintf ( stdout, "DIJKSTRA\n" );
   fprintf ( stdout, "  Normal end of execution.\n" );
 
   fprintf ( stdout, "\n" );
@@ -128,7 +125,29 @@ printf(" total: %f s\n", runtime);
 }
 /******************************************************************************/
 
-int *dijkstra_distance ( int ohd[NV][NV]  )
+
+void gen_random_graph(int ohd[NV][NV], int n)
+{
+    //int adj_matrix[n][n];
+    for(int u = 0; u < n; u++)
+    {
+        for (int v = 0; v < n; v++)
+        {
+            	ohd[u][v] = rand() % 100 + 1;
+		ohd[v][u] = ohd[u][v];
+		//printf("%d\n", ohd[u][v]);
+        }
+    }
+
+}
+
+
+
+
+
+
+
+int *dijkstra_distance ( int ohd[NV][NV] )
 
 /******************************************************************************/
 /*
@@ -158,7 +177,7 @@ int *dijkstra_distance ( int ohd[NV][NV]  )
 
   Modified:
 
-    02 July 2010
+    01 July 2010
 
   Author:
 
@@ -176,17 +195,10 @@ int *dijkstra_distance ( int ohd[NV][NV]  )
 {
   int *connected;
   int i;
-  int i4_huge = 2147483647;
   int md;
   int *mind;
   int mv;
-  int my_first;
-  int my_id;
-  int my_last;
-  int my_md;
-  int my_mv;
-  int my_step;
-  int nth;
+  int step; 
 /*
   Start out with only node 0 connected to the tree.
 */
@@ -207,104 +219,32 @@ int *dijkstra_distance ( int ohd[NV][NV]  )
     mind[i] = ohd[0][i];
   }
 /*
-  Begin the parallel region.
+  Attach one more node on each iteration.
 */
-  # pragma omp parallel private ( my_first, my_id, my_last, my_md, my_mv, my_step ) \
-  shared ( connected, md, mind, mv, nth, ohd )
+  for ( step = 1; step < NV; step++ )
   {
-    my_id = omp_get_thread_num ( );
-    nth = omp_get_num_threads ( ); 
-    my_first =   (   my_id       * NV ) / nth;
-    my_last  =   ( ( my_id + 1 ) * NV ) / nth - 1;
 /*
-  The SINGLE directive means that the block is to be executed by only
-  one thread, and that thread will be whichever one gets here first.
+  Find the nearest unconnected node.
 */
-    # pragma omp single
-    {
-      printf ( "\n" );
-      printf ( "  P%d: Parallel region begins with %d threads\n", my_id, nth );
-      printf ( "\n" );
-    }
-    fprintf ( stdout, "  P%d:  First=%d  Last=%d\n", my_id, my_first, my_last );
+    find_nearest ( mind, connected, &md, &mv );
 
-    for ( my_step = 1; my_step < NV; my_step++ )
+    if ( mv == - 1 )
     {
-/*
-  Before we compare the results of each thread, set the shared variable 
-  MD to a big value.  Only one thread needs to do this.
-*/
-      # pragma omp single 
-      {
-        md = i4_huge;
-        mv = -1; 
-      }
-/*
-  Each thread finds the nearest unconnected node in its part of the graph.
-  Some threads might have no unconnected nodes left.
-*/
-      find_nearest ( my_first, my_last, mind, connected, &my_md, &my_mv );
-/*
-  In order to determine the minimum of all the MY_MD's, we must insist
-  that only one thread at a time execute this block!
-*/
-      # pragma omp critical
-      {
-        if ( my_md < md )  
-        {
-          md = my_md;
-          mv = my_mv;
-        }
-      }
-/*
-  This barrier means that ALL threads have executed the critical
-  block, and therefore MD and MV have the correct value.  Only then
-  can we proceed.
-*/
-      # pragma omp barrier
-/*
-  If MV is -1, then NO thread found an unconnected node, so we're done early. 
-  OpenMP does not like to BREAK out of a parallel region, so we'll just have 
-  to let the iteration run to the end, while we avoid doing any more updates.
-
-  Otherwise, we connect the nearest node.
-*/
-      # pragma omp single 
-      {
-        if ( mv != - 1 )
-        {
-          connected[mv] = 1;
-          printf ( "  P%d: Connecting node %d.\n", my_id, mv );
-        }
-      }
-/*
-  Again, we don't want any thread to proceed until the value of
-  CONNECTED is updated.
-*/
-      # pragma omp barrier
-/*
-  Now each thread should update its portion of the MIND vector,
-  by checking to see whether the trip from 0 to MV plus the step
-  from MV to a node is closer than the current record.
-*/
-      if ( mv != -1 )
-      {
-        update_mind ( my_first, my_last, mv, connected, ohd, mind );
-      }
-/*
-  Before starting the next step of the iteration, we need all threads 
-  to complete the updating, so we set a BARRIER here.
-*/
-      #pragma omp barrier
+      fprintf ( stdout, "\n" );
+      fprintf ( stdout, "DIJKSTRA_DISTANCE - Warning!\n" );
+      fprintf ( stdout, "  Search terminated early.\n" );
+      fprintf ( stdout, "  Graph might not be connected.\n" );
+      break;
     }
 /*
-  Once all the nodes have been connected, we can exit.
+  Mark this node as connected.
 */
-    # pragma omp single
-    {
-      printf ( "\n" );
-      printf ( "  P%d: Exiting parallel region.\n", my_id );
-    }
+    connected[mv] = 1;
+/*
+  Having determined the minimum distance to node MV, see if
+  that reduces the minimum distance to other nodes.
+*/
+    update_mind ( mv, connected, ohd, mind );
   }
 
   free ( connected );
@@ -313,8 +253,7 @@ int *dijkstra_distance ( int ohd[NV][NV]  )
 }
 /******************************************************************************/
 
-void find_nearest ( int s, int e, int mind[NV], int connected[NV], int *d, 
-  int *v )
+void find_nearest ( int mind[NV], int connected[NV], int *d, int *v )
 
 /******************************************************************************/
 /*
@@ -328,7 +267,7 @@ void find_nearest ( int s, int e, int mind[NV], int connected[NV], int *d,
 
   Modified:
 
-    02 July 2010
+    01 July 2010
 
   Author:
 
@@ -337,19 +276,15 @@ void find_nearest ( int s, int e, int mind[NV], int connected[NV], int *d,
 
   Parameters:
 
-    Input, int S, E, the first and last nodes that are to be checked.
-
     Input, int MIND[NV], the currently computed minimum distance from
     node 0 to each node.
 
     Input, int CONNECTED[NV], is 1 for each connected node, whose 
     minimum distance to node 0 has been determined.
 
-    Output, int *D, the distance from node 0 to the nearest unconnected 
-    node in the range S to E.
+    Output, int *D, the distance from node 0 to the nearest unconnected node.
 
-    Output, int *V, the index of the nearest unconnected node in the range
-    S to E.
+    Output, int *V, the index of the nearest unconnected node.
 */
 {
   int i;
@@ -357,10 +292,10 @@ void find_nearest ( int s, int e, int mind[NV], int connected[NV], int *d,
 
   *d = i4_huge;
   *v = -1;
-
-  for ( i = s; i <= e; i++ )
+  #pragma omp for
+  for ( i = 0; i < NV; i++ )
   {
-    if ( !connected[i] && ( mind[i] < *d ) )
+    if ( !connected[i] && mind[i] < *d )
     {
       *d = mind[i];
       *v = i;
@@ -403,7 +338,7 @@ void init ( int ohd[NV][NV] )
 
   Modified:
 
-    02 July 2010
+    01 July 2010
 
   Author:
 
@@ -420,11 +355,12 @@ void init ( int ohd[NV][NV] )
   int i4_huge = 2147483647;
   int j;
 
+  #pragma omp for
   for ( i = 0; i < NV; i++ )  
   {
     for ( j = 0; j < NV; j++ )
     {
-      if ( i == j ) 
+      if ( i == j )
       {
         ohd[i][i] = 0;
       }
@@ -434,14 +370,8 @@ void init ( int ohd[NV][NV] )
       }
     }
   }
-  ohd[0][1] = ohd[1][0] = 40;
-  ohd[0][2] = ohd[2][0] = 15;
-  ohd[1][2] = ohd[2][1] = 20;
-  ohd[1][3] = ohd[3][1] = 10;
-  ohd[1][4] = ohd[4][1] = 25;
-  ohd[2][3] = ohd[3][2] = 100;
-  ohd[1][5] = ohd[5][1] = 6;
-  ohd[4][5] = ohd[5][4] = 8;
+
+  gen_random_graph(ohd, NV);
 
   return;
 }
@@ -494,8 +424,7 @@ void timestamp ( void )
 }
 /******************************************************************************/
 
-void update_mind ( int s, int e, int mv, int connected[NV], int ohd[NV][NV],
-  int mind[NV] )
+void update_mind ( int mv, int connected[NV], int ohd[NV][NV], int mind[NV] )
 
 /******************************************************************************/
 /*
@@ -507,7 +436,7 @@ void update_mind ( int s, int e, int mv, int connected[NV], int ohd[NV][NV],
 
     We've just determined the minimum distance to node MV.
 
-    For each unconnected node I in the range S to E,
+    For each node I which is not connected yet,
     check whether the route from node 0 to MV to I is shorter
     than the currently known minimum distance.
 
@@ -517,7 +446,7 @@ void update_mind ( int s, int e, int mv, int connected[NV], int ohd[NV][NV],
 
   Modified:
 
-    02 July 2010
+    01 July 2010
 
   Author:
 
@@ -525,8 +454,6 @@ void update_mind ( int s, int e, int mv, int connected[NV], int ohd[NV][NV],
     This C version by John Burkardt.
 
   Parameters:
-
-    Input, int S, E, the first and last nodes that are to be checked.
 
     Input, int MV, the node whose minimum distance to node 0
     has just been determined.
@@ -538,17 +465,24 @@ void update_mind ( int s, int e, int mv, int connected[NV], int ohd[NV][NV],
     nodes I and J.
 
     Input/output, int MIND[NV], the currently computed minimum distances
-    from node 0 to each node.  On output, the values for nodes S through
-    E have been updated.
+    from node 0 to each node.
 */
 {
   int i;
   int i4_huge = 2147483647;
 
-  for ( i = s; i <= e; i++ )
+  #pragma omp for
+  for ( i = 0; i < NV; i++ )
   {
     if ( !connected[i] )
     {
+/*
+  If we really use the maximum integer (or something close) to indicate
+  no link, then we'll get burned if we add it to another value;
+  Integer arithmetic can "wrap around", so that 17 + i4_huge becomes
+  a very negative number!  So first we eliminate the possiblity that
+  the link is infinite.
+*/
       if ( ohd[mv][i] < i4_huge )
       {
         if ( mind[mv] + ohd[mv][i] < mind[i] )  
@@ -560,3 +494,6 @@ void update_mind ( int s, int e, int mv, int connected[NV], int ohd[NV][NV],
   }
   return;
 }
+
+
+

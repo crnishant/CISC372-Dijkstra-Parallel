@@ -1,0 +1,44 @@
+{
+  "Analysis": [
+    {
+      "Arguments": {
+        "C": {
+          "Args": "",
+          "Compiler": "gcc"
+        },
+        "Cpp": {
+          "Args": "",
+          "Compiler": "g++"
+        },
+        "Fortran": {
+          "Args": "",
+          "Compiler": "gfortran"
+        }
+      },
+      "Path": "."
+    }
+  ],
+  "BundledHeaders": {
+    "IncludeLIBC": true,
+    "IncludeOpenMP": true
+  },
+  "Tasks": [
+    {
+      "Command": {
+        "Cwd": "/usa/nishantc/DijkstraProj/CISC372-Djikstra-Parallel",
+        "Exec": "gcc -fopenmp main.c -o main"
+      },
+      "Group": "build",
+      "Name": "Main"
+    },
+    {
+      "Command": {
+        "Cwd": "/usa/nishantc/DijkstraProj/CISC372-Djikstra-Parallel",
+        "Exec": "env OMP_NUM_THREADS=1 ./main"
+      },
+      "Group": "run",
+      "Name": "Main"
+    }
+  ],
+  "Version": 1
+}
