@@ -2,9 +2,11 @@
 # include <stdio.h>
 # include <time.h>
 #include <omp.h>
+#include <stdlib.h>
 # define NV 6
 
 int main ( int argc, char **argv );
+void gen_random_graph(int n);
 int *dijkstra_distance ( int ohd[NV][NV] );
 void find_nearest ( int mind[NV], int connected[NV], int *d, int *v );
 void init ( int ohd[NV][NV] );
@@ -84,6 +86,9 @@ int main ( int argc, char **argv )
     }
     fprintf ( stdout, "\n" );
   }
+
+  gen_random_graph(100);               /*------------------------------------------------------*/
+
 /*
   Carry out the algorithm.
 */
@@ -119,6 +124,30 @@ printf(" total: %f s\n", runtime);
   return 0;
 }
 /******************************************************************************/
+
+
+void gen_random_graph(int n)
+{
+    int adj_matrix[n][n];
+    for(int u = 0; u < n; u++)
+    {
+        for (int v = 0; v < n; v++)
+        {
+            if(adj_matrix[u][v]==adj_matrix[v][u])
+            {
+                adj_matrix[u][v] = rand() % 10 + 1;
+                printf("%d\n", adj_matrix[u][v]);
+            }
+        }
+    }
+
+}
+
+
+
+
+
+
 
 int *dijkstra_distance ( int ohd[NV][NV] )
 
