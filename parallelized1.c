@@ -194,6 +194,7 @@ void find_nearest ( int s, int e, int mind[NV], int connected[NV], int *d,
   *d = i4_huge;
   *v = -1;
 
+  #pragma omp parallel for default(none) private(s, i, e, d, v) shared(mind, connected)
   for ( i = s; i <= e; i++ )
   {
     if ( !connected[i] && ( mind[i] < *d ) )
@@ -212,11 +213,12 @@ void init ( int ohd[NV][NV] )
 {
   int i;
   int i4_huge = 2147483647;
-  int j;
+  //int j;
 
+  #pragma omp parallel for default(none) private(i, i4_huge) shared(ohd)
   for ( i = 0; i < NV; i++ )  
   {
-    for ( j = 0; j < NV; j++ )
+    for ( int j = 0; j < NV; j++ )
     {
       if ( i == j ) 
       {
@@ -265,6 +267,7 @@ void update_mind ( int s, int e, int mv, int connected[NV], int ohd[NV][NV], int
   int i;
   int i4_huge = 2147483647;
 
+  #pragma omp parallel for default(none) private(s, i, e, mv, i4_huge) shared(ohd, mind, connected)
   for ( i = s; i <= e; i++ )
   {
     if ( !connected[i] )
