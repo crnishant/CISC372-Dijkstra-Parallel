@@ -3,7 +3,7 @@
 # include <time.h>
 # include <omp.h>
 
-# define NV 6
+# define NV 100
 
 int main ( int argc, char **argv );
 int *dijkstra_distance ( int ohd[NV][NV] );
@@ -13,6 +13,7 @@ void init ( int ohd[NV][NV] );
 void timestamp ( void );
 void update_mind ( int s, int e, int mv, int connected[NV], int ohd[NV][NV], 
   int mind[NV] );
+void gen_random_graph(int ohd[NV][NV], int n);
 
 /******************************************************************************/
 
@@ -127,6 +128,22 @@ printf(" total: %f s\n", runtime);
   return 0;
 }
 /******************************************************************************/
+
+void gen_random_graph(int ohd[NV][NV], int n)
+{
+	//int adj_matrix[n][n];
+	for (int u = 0; u < n; u++)
+	{
+		for (int v = 0; v < n; v++)
+		{
+			ohd[u][v] = rand() % 100 + 1;
+			ohd[v][u] = ohd[u][v];
+			//printf("%d\n", ohd[u][v]);
+		}
+	}
+
+}
+
 
 int *dijkstra_distance ( int ohd[NV][NV]  )
 
@@ -434,14 +451,8 @@ void init ( int ohd[NV][NV] )
       }
     }
   }
-  ohd[0][1] = ohd[1][0] = 40;
-  ohd[0][2] = ohd[2][0] = 15;
-  ohd[1][2] = ohd[2][1] = 20;
-  ohd[1][3] = ohd[3][1] = 10;
-  ohd[1][4] = ohd[4][1] = 25;
-  ohd[2][3] = ohd[3][2] = 100;
-  ohd[1][5] = ohd[5][1] = 6;
-  ohd[4][5] = ohd[5][4] = 8;
+  
+  gen_random_graph(ohd, NV);
 
   return;
 }
