@@ -45,7 +45,6 @@ int main ( int argc, char **argv )
 
   init ( ohd );
 
-/
 /*
   Carry out the algorithm.
 */
