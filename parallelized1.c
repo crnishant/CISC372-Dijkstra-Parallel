@@ -95,7 +95,7 @@ int main ( int argc, char **argv )
     }
     fprintf ( stdout, "\n" );
   }
-  /*
+  */
 /*
   Carry out the algorithm.
 */
@@ -142,9 +142,11 @@ void gen_random_graph(int ohd[NV][NV], int n)
 	{
 		for (int v = 0; v < n; v++)
 		{
-			ohd[u][v] = rand() % 100 + 1;
-			ohd[v][u] = ohd[u][v];
-			//printf("%d\n", ohd[u][v]);
+			int random = rand() % 5 + 1;
+			if(random == 1){
+				ohd[u][v] = rand() % 100 + 1;
+				ohd[v][u] = ohd[u][v];
+			}
 		}
 	}
 
