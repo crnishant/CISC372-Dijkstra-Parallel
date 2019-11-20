@@ -3,7 +3,7 @@
 # include <time.h>
 # include <omp.h>
 
-# define NV 100
+# define NV 1000
 
 int main ( int argc, char **argv );
 int *dijkstra_distance ( int ohd[NV][NV] );
@@ -56,7 +56,8 @@ int main ( int argc, char **argv )
   int *mind;
   int ohd[NV][NV];
 
-  timestamp ( );
+  timestamp ( ) ;
+  /*
   fprintf ( stdout, "\n" );
   fprintf ( stdout, "DIJKSTRA_OPENMP\n" );
   fprintf ( stdout, "  C version\n" );
@@ -67,6 +68,7 @@ int main ( int argc, char **argv )
   fprintf ( stdout, "  Although a very small example is considered, we\n" );
   fprintf ( stdout, "  demonstrate the use of OpenMP directives for\n" );
   fprintf ( stdout, "  parallel execution.\n" );
+  /*
 /*
   Initialize the problem data.
 */
@@ -74,6 +76,7 @@ int main ( int argc, char **argv )
 /*
   Print the distance matrix.
 */
+  /*
   fprintf ( stdout, "\n" );
   fprintf ( stdout, "  Distance matrix:\n" );
   fprintf ( stdout, "\n" );
@@ -92,6 +95,7 @@ int main ( int argc, char **argv )
     }
     fprintf ( stdout, "\n" );
   }
+  /*
 /*
   Carry out the algorithm.
 */
@@ -104,6 +108,7 @@ printf(" total: %f s\n", runtime);
 /*
   Print the results.
 */
+/*
   fprintf ( stdout, "\n" );
   fprintf ( stdout, "  Minimum distances from node 0:\n");
   fprintf ( stdout, "\n" );
@@ -111,6 +116,7 @@ printf(" total: %f s\n", runtime);
   {
     fprintf ( stdout, "  %2d  %2d\n", i, mind[i] );
   }
+*/
 /*
   Free memory.
 */
@@ -239,9 +245,9 @@ int *dijkstra_distance ( int ohd[NV][NV]  )
 */
     # pragma omp single
     {
-      printf ( "\n" );
-      printf ( "  P%d: Parallel region begins with %d threads\n", my_id, nth );
-      printf ( "\n" );
+      //      printf ( "\n" );
+      // printf ( "  P%d: Parallel region begins with %d threads\n", my_id, nth );
+      // printf ( "\n" );
     }
     fprintf ( stdout, "  P%d:  First=%d  Last=%d\n", my_id, my_first, my_last );
 
@@ -291,7 +297,7 @@ int *dijkstra_distance ( int ohd[NV][NV]  )
         if ( mv != - 1 )
         {
           connected[mv] = 1;
-          printf ( "  P%d: Connecting node %d.\n", my_id, mv );
+	  //  printf ( "  P%d: Connecting node %d.\n", my_id, mv );
         }
       }
 /*
@@ -319,8 +325,8 @@ int *dijkstra_distance ( int ohd[NV][NV]  )
 */
     # pragma omp single
     {
-      printf ( "\n" );
-      printf ( "  P%d: Exiting parallel region.\n", my_id );
+      //   printf ( "\n" );
+      // printf ( "  P%d: Exiting parallel region.\n", my_id );
     }
   }
 

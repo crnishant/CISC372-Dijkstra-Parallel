@@ -3,7 +3,7 @@
 # include <time.h>
 #include <omp.h>
 #include <stdlib.h>
-# define NV 100
+# define NV 1000
 
 int main ( int argc, char **argv );
 void gen_random_graph(int ohd[NV][NV], int n);
@@ -55,12 +55,12 @@ int main ( int argc, char **argv )
   int ohd[NV][NV];
 
   timestamp ( );
-  fprintf ( stdout, "\n" );
-  fprintf ( stdout, "DIJKSTRA\n" );
-  fprintf ( stdout, "  C version\n" );
-  fprintf ( stdout, "  Use Dijkstra's algorithm to determine the minimum\n" );
-  fprintf ( stdout, "  distance from node 0 to each node in a graph,\n" );
-  fprintf ( stdout, "  given the distances between each pair of nodes.\n" );
+  // fprintf ( stdout, "\n" );
+  //fprintf ( stdout, "DIJKSTRA\n" );
+  //fprintf ( stdout, "  C version\n" );
+  //fprintf ( stdout, "  Use Dijkstra's algorithm to determine the minimum\n" );
+  //fprintf ( stdout, "  distance from node 0 to each node in a graph,\n" );
+  //fprintf ( stdout, "  given the distances between each pair of nodes.\n" );
 /*
   Initialize the problem data.
 */
@@ -68,7 +68,7 @@ int main ( int argc, char **argv )
 /*
   Print the distance matrix.
 */
-  fprintf ( stdout, "\n" );
+  /* fprintf ( stdout, "\n" );
   fprintf ( stdout, "  Distance matrix:\n" );
   fprintf ( stdout, "\n" );
   for ( i = 0; i < NV; i++ )
@@ -86,7 +86,7 @@ int main ( int argc, char **argv )
     }
     fprintf ( stdout, "\n" );
   }
-
+  */
   //gen_random_graph(100);               /*------------------------------------------------------*/
 
 /*
@@ -102,6 +102,7 @@ printf(" total: %f s\n", runtime);
 /*
   Print the results.
 */
+/*
   fprintf ( stdout, "\n" );
   fprintf ( stdout, "  Minimum distances from node 0:\n");
   fprintf ( stdout, "\n" );
@@ -109,6 +110,7 @@ printf(" total: %f s\n", runtime);
   {
     fprintf ( stdout, "  %2d  %2d\n", i, mind[i] );
   }
+*/
 /*
   Terminate.
 */
@@ -140,8 +142,6 @@ void gen_random_graph(int ohd[NV][NV], int n)
     }
 
 }
-
-
 
 
 
