@@ -15,28 +15,30 @@ void update_mind ( int mv, int connected[NV], int ohd[NV][NV], int mind[NV] );
 
 int main ( int argc, char **argv )
 {
-  int i;
+  
+  //int i;
   int i4_huge = 2147483647;
-  int j;
+  //int j;
+  
   int *mind;
   int ohd[NV][NV];
-
-  timestamp ( );
-  init ( ohd );
- double st = omp_get_wtime();
-  mind = dijkstra_distance ( ohd );
- double runtime = omp_get_wtime() - st;
+  
+  //  timestamp ( );
+    init ( ohd );
+    double st = omp_get_wtime();
+   mind = dijkstra_distance ( ohd );
+   double runtime = omp_get_wtime() - st;
 printf(" total: %f s\n", runtime);
-
+  
   free ( mind );
-
+  /*
   fprintf ( stdout, "\n" );
   fprintf ( stdout, "DIJKSTRA\n" );
   fprintf ( stdout, "  Normal end of execution.\n" );
 
   fprintf ( stdout, "\n" );
-  timestamp ( );
-
+  //  timestamp ( );
+*/
   return 0;
 }
 

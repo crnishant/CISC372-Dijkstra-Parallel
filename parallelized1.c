@@ -2,18 +2,15 @@
 # include <stdio.h>
 # include <time.h>
 # include <omp.h>
-
-# define NV 1000
+# define NV 15000
 
 int main ( int argc, char **argv );
-int *dijkstra_distance ( int ohd[NV][NV] );
-void find_nearest ( int s, int e, int mind[NV], int connected[NV], int *d, 
-  int *v );
-void init ( int ohd[NV][NV] );
+int *dijkstra_distance ( int *ohd);
+void find_nearest ( int s, int e, int mind[NV], int connected[NV], int *d,   int *v );
+void init ( int *ohd);
 void timestamp ( void );
-void update_mind ( int s, int e, int mv, int connected[NV], int ohd[NV][NV], 
-  int mind[NV] );
-void gen_random_graph(int ohd[NV][NV], int n);
+void update_mind ( int s, int e, int mv, int connected[NV], int *ohd, int mind[NV] );
+void gen_random_graph(int *ohd, int n);
 
 /******************************************************************************/
 
@@ -39,21 +36,20 @@ int main ( int argc, char **argv )
   int i4_huge = 2147483647;
   int j;
   int *mind;
-  int ohd[NV][NV];
-
-  timestamp ( ) ;
+  int *ohd = (int *)malloc(NV * NV * sizeof(int));
+  //  timestamp ( ) ;
 
   init ( ohd );
 
 /*
   Carry out the algorithm.
 */
-  double st = omp_get_wtime();
+   double st = omp_get_wtime();
 
   mind = dijkstra_distance ( ohd );
 
- double runtime = omp_get_wtime() - st;
-printf(" total: %f s\n", runtime);  
+  double runtime = omp_get_wtime() - st;
+  printf(" total: %f s\n", runtime);  
 /*
   Print the results.
 */
@@ -67,23 +63,25 @@ printf(" total: %f s\n", runtime);
   }
 */
   free ( mind );
-
-  timestamp ( );
+  free(ohd);
+  //  timestamp ( );
 
   return 0;
 }
 /******************************************************************************/
 
-void gen_random_graph(int ohd[NV][NV], int n)
-{
+void gen_random_graph(int *ohd, int n)
+{  
 	for (int u = 0; u < n; u++)
 	{
 		for (int v = 0; v < n; v++)
 		{
 			int random = rand() % 5 + 1;
 			if(random == 1){
-				ohd[u][v] = rand() % 100 + 1;
-				ohd[v][u] = ohd[u][v];
+			  *(ohd + u*NV + v) = rand() % 100 - 1;
+			  *(ohd + v*NV + u) = *(ohd + u*NV + v); 
+			    //ohd[u][v] = rand() % NV + 1;  /* shouldnt the 100 be NV?*/
+			  //	ohd[v][u] = ohd[u][v];
 			}
 		}
 	}
@@ -91,7 +89,7 @@ void gen_random_graph(int ohd[NV][NV], int n)
 }
 
 
-int *dijkstra_distance ( int ohd[NV][NV]  )
+int *dijkstra_distance ( int *ohd  )
 /*
     DIJKSTRA_DISTANCE uses Dijkstra's minimum distance algorithm.
 */
@@ -122,7 +120,8 @@ int *dijkstra_distance ( int ohd[NV][NV]  )
 
   for ( i = 0; i < NV; i++ )
   {
-    mind[i] = ohd[0][i];
+    // mind[i] = ohd[0][i];
+    mind[i] = *(ohd + i) ;
   }
 
   # pragma omp parallel private ( my_first, my_id, my_last, my_md, my_mv, my_step ) \
@@ -133,7 +132,7 @@ int *dijkstra_distance ( int ohd[NV][NV]  )
     my_first =   (   my_id       * NV ) / nth;
     my_last  =   ( ( my_id + 1 ) * NV ) / nth - 1;
 
-    fprintf ( stdout, "  P%d:  First=%d  Last=%d\n", my_id, my_first, my_last );
+    //fprintf ( stdout, "  P%d:  First=%d  Last=%d\n", my_id, my_first, my_last );
 
     for ( my_step = 1; my_step < NV; my_step++ )
     {
@@ -205,26 +204,28 @@ void find_nearest ( int s, int e, int mind[NV], int connected[NV], int *d,
   return;
 }
 
-void init ( int ohd[NV][NV] )
+void init ( int *ohd )
 /*
     INIT initializes the problem data.
 */
-{
+
+{ 
   int i;
   int i4_huge = 2147483647;
   int j;
-
+ 
   for ( i = 0; i < NV; i++ )  
   {
     for ( j = 0; j < NV; j++ )
     {
       if ( i == j ) 
-      {
-        ohd[i][i] = 0;
+      { 
+	*(ohd + i*NV + j) = 0;
+        //ohdi][i] = 0;
       }
       else
       {
-        ohd[i][j] = i4_huge;
+        *(ohd + i*NV + j) = i4_huge;
       }
     }
   }
@@ -257,7 +258,7 @@ void timestamp ( void )
 }
 
 
-void update_mind ( int s, int e, int mv, int connected[NV], int ohd[NV][NV], int mind[NV] )
+void update_mind ( int s, int e, int mv, int connected[NV], int *ohd, int mind[NV] )
 /*
     UPDATE_MIND updates the minimum distance vector.
 */
@@ -269,11 +270,11 @@ void update_mind ( int s, int e, int mv, int connected[NV], int ohd[NV][NV], int
   {
     if ( !connected[i] )
     {
-      if ( ohd[mv][i] < i4_huge )
+      if ( *(ohd + mv*NV + i) < i4_huge )
       {
-        if ( mind[mv] + ohd[mv][i] < mind[i] )  
+        if ( mind[mv] + *(ohd + mv*NV + i) < mind[i] )  
         {
-          mind[i] = mind[mv] + ohd[mv][i];
+          mind[i] = mind[mv] + *(ohd + mv*NV + i);
         }
       }
     }
