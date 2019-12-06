@@ -1,4 +1,4 @@
-# CISC372-Djikstra-Parallel
+# CISC372-Dijkstra-Parallel
 
 
 Contributors:
