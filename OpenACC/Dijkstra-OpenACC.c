@@ -124,8 +124,7 @@ int *dijkstra_distance ( int *ohd  )
     mind[i] = *(ohd + i) ;
   }
 
-  # pragma omp parallel private ( my_first, my_id, my_last, my_md, my_mv, my_step ) \
-  shared ( connected, md, mind, mv, nth, ohd )
+  #pragma acc kernel
   {
     my_id = omp_get_thread_num ( );
     nth = omp_get_num_threads ( ); 
@@ -136,41 +135,28 @@ int *dijkstra_distance ( int *ohd  )
 
     for ( my_step = 1; my_step < NV; my_step++ )
     {
-      # pragma omp single 
-      {
         md = i4_huge;
         mv = -1; 
-      }
 
       find_nearest ( my_first, my_last, mind, connected, &my_md, &my_mv );
 
-      # pragma omp critical
-      {
         if ( my_md < md )  
         {
           md = my_md;
           mv = my_mv;
         }
-      }
 
-      # pragma omp barrier
-
-      # pragma omp single 
-      {
         if ( mv != - 1 )
         {
           connected[mv] = 1;
         }
-      }
 
-      # pragma omp barrier
 
       if ( mv != -1 )
       {
         update_mind ( my_first, my_last, mv, connected, ohd, mind );
       }
 
-      #pragma omp barrier
     }
 
   }
